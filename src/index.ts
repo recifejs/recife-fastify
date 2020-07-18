@@ -1,4 +1,4 @@
-import fastify, { FastifyRequest } from 'fastify';
+import fastify, { FastifyRequest, FastifyInstance } from 'fastify';
 import { ApolloServer, IResolvers } from 'apollo-server-fastify';
 import { ApolloServerBase, Context, Config } from 'apollo-server-core';
 import { DocumentNode } from 'graphql';
@@ -16,12 +16,32 @@ type ListenParams = {
 };
 
 class RecifeFastify {
-  app = fastify({ logger: true });
+  app: FastifyInstance;
 
-  constructor(bodyParser: any, cors: any, homepage: string) {
+  constructor(bodyParserConfig: any, corsConfig: any, homepage: string) {
+    this.app = fastify({ logger: true });
+
+    if (corsConfig && corsConfig.enabled) {
+      this.app.register(
+        require('fastify-cors'),
+        this.corsTranslator(corsConfig)
+      );
+    }
+
     this.app.get('/', (_, reply) => {
       reply.send(homepage);
     });
+  }
+
+  private corsTranslator(corsConfig: any) {
+    return {
+      origin: corsConfig.origin,
+      methods: corsConfig.allowMethods,
+      allowedHeaders: corsConfig.allowHeaders,
+      exposedHeaders: corsConfig.exposeHeaders,
+      credentials: corsConfig.credentials,
+      maxAge: corsConfig.maxAge
+    };
   }
 
   createApolloServer({
