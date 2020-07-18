@@ -36,9 +36,9 @@ class RecifeFastify {
       typeDefs,
       context: ({ request }: { request: FastifyRequest }) =>
         context({
-          method: request.method,
-          url: request.url,
-          header: request.headers
+          method: request.req.method,
+          url: request.req.url,
+          header: request.req.headers
         })
     });
 

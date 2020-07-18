@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "apollo-server-fastify": "^2.15.1",
-    "fastify": "^3.0.3"
+    "fastify": "^2.15.2"
   },
   "devDependencies": {
     "typescript": "^3.9.7"
