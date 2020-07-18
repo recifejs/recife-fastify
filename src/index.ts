@@ -16,10 +16,20 @@ type ListenParams = {
 };
 
 class RecifeFastify {
-  app: FastifyInstance;
+  app?: FastifyInstance;
+  bodyParserConfig: any;
+  corsConfig: any;
+  homepage: string;
 
   constructor(bodyParserConfig: any, corsConfig: any, homepage: string) {
-    this.app = fastify({ logger: true });
+    this.bodyParserConfig = bodyParserConfig;
+    this.corsConfig = corsConfig;
+    this.homepage = homepage;
+    this.createApp(bodyParserConfig, corsConfig, homepage);
+  }
+
+  createApp(bodyParserConfig: any, corsConfig: any, homepage: string) {
+    this.app = fastify({ logger: false });
 
     if (corsConfig && corsConfig.enabled) {
       this.app.register(
@@ -29,7 +39,7 @@ class RecifeFastify {
     }
 
     this.app.get('/', (_, reply) => {
-      reply.send(homepage);
+      reply.type('text/html').send(homepage);
     });
   }
 
@@ -62,15 +72,20 @@ class RecifeFastify {
         })
     });
 
-    this.app.register(apolloServer.createHandler());
+    this.app!.register(apolloServer.createHandler());
 
     return apolloServer;
   }
 
   listen({ port, host }: ListenParams, callback: () => void) {
-    this.app.listen(parseInt(port), host, () => callback());
+    this.app!.listen(parseInt(port), host, () => callback());
 
-    return this.app;
+    return {
+      close: () => {
+        this.app!.server.close();
+        this.createApp(this.bodyParserConfig, this.corsConfig, this.homepage);
+      }
+    };
   }
 }
 
